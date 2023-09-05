@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {Text,View, TextInput ,StyleSheet,SafeAreaView,Dimensions,Vibration} from 'react-native';
 import Color from '../Constants/Color';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const screenDimension = Dimensions.get('screen');
 
-const AddContact = ({navigation}) => {
+const AddContact = ({navigation, route}) => {
   const [text, onChangeText] = React.useState('Useless Text');
   const [name, onChangeName] = React.useState('');
   const [phone, onChangePhone] = React.useState('');
+
+  useEffect(()=>{
+    navigation.setOptions({
+      title:"Add new Contact"
+    })
+  },[])
+  
   return (
     <View>
       <TextInput

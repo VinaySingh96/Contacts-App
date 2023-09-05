@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 
-const Contacts = () => {
+const Contacts = ({navigation,route}) => {
+  useEffect(()=>{
+    navigation.setOptions({
+      title:route.params.name.toUpperCase()
+    })
+  },[])
   return (
     <Text>Contacts</Text>
   )

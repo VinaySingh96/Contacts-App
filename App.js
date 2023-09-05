@@ -15,6 +15,7 @@ import Home from './screens/Home';
 import ContactsScreen from './screens/Contacts';
 import Profile from './screens/Profile';
 import AddContact from './screens/AddContact';
+import AllContacts from './screens/AllContacts';
 
 const Stack=createStackNavigator();
 
@@ -64,6 +65,7 @@ const App = () => {
         <Stack.Screen name='ContactsScreen' component={ContactsScreen} />
         <Stack.Screen name='Profile' component={Profile} />
         <Stack.Screen name='AddContact' component={AddContact} />
+        <Stack.Screen name='AllContacts' component={AllContacts} />
       </Stack.Navigator>
     </NavigationContainer>
 
