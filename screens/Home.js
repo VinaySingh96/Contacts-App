@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, PermissionsAndroid, TouchableOpacity, TouchableHighlight, Modal, Image, StyleSheet, Dimensions, TextInput, Pressable, Button } from 'react-native';
+import { Text, View, PermissionsAndroid, TouchableOpacity, Alert, Modal, Image, StyleSheet, Dimensions, TextInput, Pressable, Button } from 'react-native';
 import Contacts from 'react-native-contacts';
 import Color from '../Constants/Color';
 import { ScrollView, } from 'react-native-gesture-handler';
@@ -26,6 +26,11 @@ const Home = ({ navigation }) => {
       }
     )
 
+    getContactsAndCategory();
+
+  }, [])
+
+  const getContactsAndCategory = () => {
     PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
       {
@@ -49,30 +54,45 @@ const Home = ({ navigation }) => {
         })
         contactarr.sort((a, b) => a.name.localeCompare(b.name));
         setallContact(contactarr);
-        // contactarr.map(ele =>
-        //   console.log(ele.name)
-        // )
+
+        AsyncStorage.getItem('categories').then((categoriesJSON) => {
+          if (categoriesJSON) {
+            const categories = JSON.parse(categoriesJSON);
+            let newcategoryData = [];
+            console.log("Total categories = ", categories)
+
+            console.log("Total contacts = ", contactarr.length)
+            for (const category of categories) {
+              const data = contactarr.filter((contact) => category === contact.department);
+              let contactArray = {
+                name: category,
+                contacts: data,
+              };
+              newcategoryData.push(contactArray);
+            }
+            setCategoryData(newcategoryData);
+          }
+        })
       }).catch((e) => {
         console.log(e);
       })
     });
-
-    getCategories();
-    setByCategory();
-  }, [])
-
-  const getCategories = async () => {
-    setCategoryData(JSON.parse(await AsyncStorage.getItem('categories')));
   }
 
-  const setByCategory=()=>{
+  const setByCategory = async () => {
     // setting all contacts according to categories.
-    categoryData.map((category)=>{
-      console.log(category)
-      let data=allContact.filter((contact)=>category===contact.department);
-      console.log(data)
-      console.log("+++++++++++++++++++++++++++++++++++++++++")
+    let categories = JSON.parse(await AsyncStorage.getItem('categories'));
+    let newcategoryData = [];
+    categories.map((category) => {
+      let data = allContact.filter((contact) => category === contact.department);
+
+      let contactArray = {
+        name: category,
+        contacts: data
+      }
+      newcategoryData.push(contactArray);
     })
+    setCategoryData(newcategoryData);
   }
 
   // Saving the category to async storage.
@@ -91,19 +111,38 @@ const Home = ({ navigation }) => {
       }
       AsyncStorage.setItem('categories', JSON.stringify(categories));
 
-      getCategories();
+      setByCategory();
       setCategory('');
-      
+
       setModalVisible(false)
     }
   }
 
-  const onDeleteHandle =async (index)=>{
-    let categories = JSON.parse(await AsyncStorage.getItem('categories'));
-    categories.splice(index,1);
-    AsyncStorage.setItem('categories', JSON.stringify(categories));
+  const onDeleteHandle = async (index) => {
+    Alert.alert(
+      'Delete Category',
+      'Are you sure you want to delete this category.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Ok',
+          onPress: async () => {
+            let categories = JSON.parse(await AsyncStorage.getItem('categories'));
+            categories.splice(index, 1);
+            AsyncStorage.setItem('categories', JSON.stringify(categories));
 
-    getCategories();
+            setByCategory();
+
+          }
+        }
+      ],
+      {
+        cancelable: true
+      }
+    )
   }
 
   return (
@@ -112,7 +151,7 @@ const Home = ({ navigation }) => {
         {/* All Contacts button  */}
         <View style={{ marginLeft: windowDimension.width / 1.75 }}>
           <TouchableOpacity
-            onPress={() => navigation.navigate('AllContacts', { allContacts: allContact })}
+            onPress={() => navigation.navigate('AllContacts', { name: 'All contacts', allContacts: allContact, getContactsAndCategory: getContactsAndCategory })}
           >
 
             <View
@@ -127,7 +166,7 @@ const Home = ({ navigation }) => {
                 marginTop: 10,
                 padding: 10
               }}>
-              <Text style={{ color: 'white', fontSize: 24, fontFamily: 'cursive', fontWeight: '700' }}>
+              <Text style={{ color: 'white', fontSize: 18,fontWeight: '700', }}>
                 {/* {item.unread_messages_count} */}
                 All Contacts
               </Text>
@@ -141,9 +180,9 @@ const Home = ({ navigation }) => {
           {categoryData.map((item, index) => {
             return (
               <View key={index} style={styles.mainCardView}>
-                <View style={{flexDirection:'row',width:'100%'}}>
+                <View style={{ flexDirection: 'row', width: '100%' }}>
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('ContactsScreen', { name: item })}
+                    onPress={() => navigation.navigate('AllContacts', { name: item.name, allContacts: item.contacts, getContactsAndCategory: getContactsAndCategory })}
                   >
 
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -166,25 +205,25 @@ const Home = ({ navigation }) => {
                             fontWeight: 'bold',
                             textTransform: 'capitalize',
                           }}>
-                          {item}
+                          {item.name}
                         </Text>
                       </View>
                     </View>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={{width:30,height:30, left:-20,alignItems:'center'}}
-                    onPress={()=>onDeleteHandle(index)}
+                    style={{ width: 30, height: 30, left: -20, alignItems: 'center' }}
+                    onPress={() => onDeleteHandle(index)}
                   >
-                  <Text style={{ color: 'black', fontSize: 22, }}>🗑️</Text>
+                    <Text style={{ color: 'black', fontSize: 22, }}>🗑️</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={{ width: windowDimension.width / 2.4 }}>
 
-                  <Text style={{ marginLeft: 80, color: Color.seaside.c4 }}>69 Contacts</Text>
+                  <Text style={{ marginLeft: 80, color: Color.seaside.c4 }}>{item.contacts.length} contacts</Text>
                 </View>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('AddContact', { name: item })}
+                  onPress={() => navigation.navigate('AddContact', { name: item.name,getContactsAndCategory: getContactsAndCategory })}
                 >
 
                   <View

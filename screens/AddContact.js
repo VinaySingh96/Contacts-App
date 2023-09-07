@@ -10,6 +10,7 @@ const AddContact = ({navigation, route}) => {
   const [text, onChangeText] = React.useState('Useless Text');
   const [name, onChangeName] = React.useState('');
   const [phone, onChangePhone] = React.useState('');
+  const {getContactsAndCategory } = route.params;
 
   useEffect(()=>{
     navigation.setOptions({
@@ -18,7 +19,7 @@ const AddContact = ({navigation, route}) => {
   },[])
 
   const onSaveHandle =async ()=>{
-    console.log(name)
+    console.log("Saving a new contact with name : ",name," and phone number : ",phone)
     var newPerson = {
       givenName:name,
       department:route.params.name,
@@ -27,8 +28,10 @@ const AddContact = ({navigation, route}) => {
         number: phone,
       }]
     }
-
     let savedContact=await Contacts.addContact(newPerson);
+    getContactsAndCategory();
+    // alert("Saved successfully")
+    
     navigation.goBack();
   }
   

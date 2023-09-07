@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Text, View, TouchableOpacity, FlatList, ActivityIndicator, Linking, Image, StyleSheet, Dimensions, LayoutAnimation, Pressable } from 'react-native';
-// import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { Text, View, TouchableOpacity, FlatList, ActivityIndicator, Linking, Image, StyleSheet, Dimensions, LayoutAnimation, Alert } from 'react-native';
+import Contacts from 'react-native-contacts';
 import icon from '../Assets/icon.png'
 import Color from '../Constants/Color';
 
 
 const screenDimension = Dimensions.get('screen');
 
-const AccordionItem = React.memo(({ item, isExpanded, onToggle, makeCall, sendSMS }) => {
+const AccordionItem = React.memo(({ item, isExpanded, onToggle, makeCall, sendSMS, onDeleteHandle }) => {
   return (
     <TouchableOpacity onPress={() => onToggle(item.id)}>
       <View >
@@ -26,22 +26,23 @@ const AccordionItem = React.memo(({ item, isExpanded, onToggle, makeCall, sendSM
               />
             </View>
 
-            <View style={{ width: '100%',  }}>
-              <View style={{width:'100%',display:'flex',flexDirection:'row' }}>
+            <View style={{ width: '100%', }}>
+              <View style={{ width: '100%', display: 'flex', flexDirection: 'row' }}>
 
-              <Text style={{ color: 'black', fontSize: 16, fontWeight: '600', width: '60%' }}> {item.name}</Text>
-            <TouchableOpacity
-            style={{tintColor:'red'}}
-              >
-              <Text style={{color:'black', fontSize: 24,  }}>🗑️</Text>
+                <Text style={{ color: 'black', fontSize: 16, fontWeight: '600', width: '60%' }}> {item.name}</Text>
+                <TouchableOpacity
+                  style={{ tintColor: 'red' }}
+                  onPress={() => {onDeleteHandle(item.id)}}
+                >
+                  <Text style={{ color: 'black', fontSize: 24, }}>🗑️</Text>
 
-            </TouchableOpacity>
+                </TouchableOpacity>
               </View>
-              
-                {isExpanded && <View style={styles.horizontalLine} />}
+
+              {isExpanded && <View style={styles.horizontalLine} />}
             </View>
 
-            <View style={{ width: 100,backgroundColor:'red' }} ></View>
+            <View style={{ width: 100, backgroundColor: 'red' }} ></View>
 
           </View>
           {isExpanded &&
@@ -49,10 +50,10 @@ const AccordionItem = React.memo(({ item, isExpanded, onToggle, makeCall, sendSM
               <Text style={{ color: 'black', fontSize: 14 }}> {item.phoneNumber}</Text>
               <View style={{ width: '40%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                 <TouchableOpacity onPressOut={() => makeCall(item.phoneNumber)}>
-                  <Text style={{ color:'black', fontSize: 24 }}> 📞</Text>
+                  <Text style={{ color: 'black', fontSize: 24 }}> 📞</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPressOut={() => sendSMS(item.phoneNumber)}>
-                  <Text style={{ color:'black', fontSize: 24 }}> 📤</Text>
+                  <Text style={{ color: 'black', fontSize: 24 }}> 📤</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -69,16 +70,19 @@ const AllContacts = ({ navigation, route }) => {
   const [loading, setloading] = useState(true);
   const [toggleDetails, setToggleDetails] = useState(null);
 
+  const {getContactsAndCategory}=route.params;
+
   useEffect(() => {
     setallContact(route.params.allContacts);
     setloading(false);
 
     navigation.setOptions({
+      title: route.params.name,
       headerRight: () => (
         <TouchableOpacity
-          onPress={() => navigation.navigate('AddContact')}
+          onPress={() => navigation.navigate('AddContact', { name: route.params.name ,getContactsAndCategory: getContactsAndCategory})}
           style={{ width: '20%' }}>
-          <Text style={{ color:'black',fontSize: 20 }}>➕</Text>
+          <Text style={{ color: 'black', fontSize: 20 }}>➕</Text>
         </TouchableOpacity>
       )
     })
@@ -105,6 +109,37 @@ const AllContacts = ({ navigation, route }) => {
     Linking.openURL(`sms:${phoneNumber}?body=${encodeURIComponent("")}`);
   };
 
+  const onDeleteHandle = async (recordID) => {
+    console.log(recordID)
+    Alert.alert(
+      'Delete Category',
+      'Are you sure you want to delete this contact.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Ok',
+          onPress: async () => {
+            try {
+              await Contacts.deleteContact({ recordID: recordID });
+              console.log('Contact deleted successfully');
+              getContactsAndCategory();
+              const updatedContacts = allContact.filter((obj) => obj.id !== recordID);
+              setallContact(updatedContacts)
+            } catch (error) {
+              console.error('Error deleting contact:', error);
+            }
+
+          }
+        }
+      ],
+      {
+        cancelable: true
+      }
+    )
+  }
 
   return (
     // <ScrollView >
@@ -124,6 +159,7 @@ const AllContacts = ({ navigation, route }) => {
               onToggle={toggleAccordion}
               makeCall={makeCall}
               sendSMS={sendSMS}
+              onDeleteHandle={()=>onDeleteHandle(item.id)}
             />
           )}
         />
