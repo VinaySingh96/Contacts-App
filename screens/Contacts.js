@@ -8,7 +8,7 @@ const Contacts = ({navigation,route}) => {
     })
   },[])
   return (
-    <Text>Contacts</Text>
+    <Text style={{color:'black'}}>Contacts</Text>
   )
 }
 

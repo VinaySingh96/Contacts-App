@@ -25,21 +25,34 @@ const AccordionItem = React.memo(({ item, isExpanded, onToggle, makeCall, sendSM
                 }}
               />
             </View>
-            <View style={{ width: '100%' }}>
+
+            <View style={{ width: '100%',  }}>
+              <View style={{width:'100%',display:'flex',flexDirection:'row' }}>
 
               <Text style={{ color: 'black', fontSize: 16, fontWeight: '600', width: '60%' }}> {item.name}</Text>
-              {isExpanded && <View style={styles.horizontalLine} /> }
+            <TouchableOpacity
+            style={{tintColor:'red'}}
+              >
+              <Text style={{color:'black', fontSize: 24,  }}>🗑️</Text>
+
+            </TouchableOpacity>
+              </View>
+              
+                {isExpanded && <View style={styles.horizontalLine} />}
             </View>
+
+            <View style={{ width: 100,backgroundColor:'red' }} ></View>
+
           </View>
           {isExpanded &&
             <View style={styles.contentBottom}>
               <Text style={{ color: 'black', fontSize: 14 }}> {item.phoneNumber}</Text>
               <View style={{ width: '40%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                 <TouchableOpacity onPressOut={() => makeCall(item.phoneNumber)}>
-                  <Text style={{ color: 'black', fontSize: 24 }}> 📞</Text>
+                  <Text style={{ color:'black', fontSize: 24 }}> 📞</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPressOut={() => sendSMS(item.phoneNumber)}>
-                  <Text style={{ color: 'black', fontSize: 24 }}> 📤</Text>
+                  <Text style={{ color:'black', fontSize: 24 }}> 📤</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -60,6 +73,15 @@ const AllContacts = ({ navigation, route }) => {
     setallContact(route.params.allContacts);
     setloading(false);
 
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('AddContact')}
+          style={{ width: '20%' }}>
+          <Text style={{ color:'black',fontSize: 20 }}>➕</Text>
+        </TouchableOpacity>
+      )
+    })
   }, [])
 
   const [expandedItem, setExpandedItem] = useState(null);
@@ -86,14 +108,15 @@ const AllContacts = ({ navigation, route }) => {
 
   return (
     // <ScrollView >
-    <View style={{ backgroundColor: Color.vintage2.c1, height: screenDimension.height }}>
+    <View style={{ backgroundColor: Color.vintage2.c1, height: screenDimension.height, padding: 5 }}>
       {loading && <ActivityIndicator size='large' style={{ marginTop: screenDimension.height / 2.2 }} />}
-      <View>
+      <View style={{ marginLeft: -10 }}>
         <FlatList
+          showsVerticalScrollIndicator={true}
           data={allContact}
           keyExtractor={(item) => item.id}
-          initialNumToRender={10}
-          windowSize={2}
+          initialNumToRender={40}
+          windowSize={4}
           renderItem={({ item }) => (
             <AccordionItem
               item={item}
@@ -149,8 +172,8 @@ const styles = StyleSheet.create({
     // height: 10,
     width: '70%',
     borderBottomColor: 'grey', // Line color
-    borderBottomWidth: 1,  
-    borderBottomRadius:1,     // Line thickness
+    borderBottomWidth: 1,
+    borderBottomRadius: 1,     // Line thickness
     marginTop: 10
   },
 })

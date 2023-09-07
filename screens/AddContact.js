@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import {Text,View, TextInput ,StyleSheet,SafeAreaView,Dimensions,Vibration} from 'react-native';
 import Color from '../Constants/Color';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import Contacts from 'react-native-contacts';
 
 const screenDimension = Dimensions.get('screen');
 
@@ -12,9 +13,24 @@ const AddContact = ({navigation, route}) => {
 
   useEffect(()=>{
     navigation.setOptions({
-      title:"Add new Contact"
+      title:"Add new contact ("+route.params.name+")"
     })
   },[])
+
+  const onSaveHandle =async ()=>{
+    console.log(name)
+    var newPerson = {
+      givenName:name,
+      department:route.params.name,
+      phoneNumbers: [{
+        label: 'mobile',
+        number: phone,
+      }]
+    }
+
+    let savedContact=await Contacts.addContact(newPerson);
+    navigation.goBack();
+  }
   
   return (
     <View>
@@ -34,12 +50,13 @@ const AddContact = ({navigation, route}) => {
         placeholderTextColor={Color.dark2.c1}
         keyboardType='phone-pad'
       />
+      
       <View style={styles.container}>
 
         <TouchableOpacity
         onPress={()=>{
           Vibration.vibrate(100);
-          navigation.navigate('Home')
+          navigation.goBack()
         }}
         >
         <View style={styles.button}>
@@ -48,7 +65,7 @@ const AddContact = ({navigation, route}) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-        onPress={()=>Vibration.vibrate(100)}
+        onPress={onSaveHandle}
         >
         <View style={styles.button}>
           <Text style={{color:Color.light.c1,fontSize:17,fontWeight:'bold'}}>Save</Text>
